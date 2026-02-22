@@ -34,10 +34,19 @@ set_target_properties(visa_static PROPERTIES OUTPUT_NAME "visa_static")
 if(WIN32)
     target_link_libraries(visa PRIVATE ws2_32)
     target_link_libraries(visa_static PRIVATE ws2_32)
+    # Output visa32.dll or visa64.dll based on target architecture
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set_target_properties(visa PROPERTIES OUTPUT_NAME "visa64" PREFIX "")
+        set_target_properties(visa_static PROPERTIES OUTPUT_NAME "visa64_static" PREFIX "")
+    else()
+        set_target_properties(visa PROPERTIES OUTPUT_NAME "visa32" PREFIX "")
+        set_target_properties(visa_static PROPERTIES OUTPUT_NAME "visa32_static" PREFIX "")
+    endif()
+    # Generate .lib import library for MSVC
     set_target_properties(visa PROPERTIES
-        OUTPUT_NAME "visa64"
-        PREFIX ""
+        WINDOWS_EXPORT_ALL_SYMBOLS OFF
     )
+    # DEF file for explicit exports (optional, we use __declspec(dllexport))
 else()
     target_link_libraries(visa PRIVATE dl)
     target_link_libraries(visa_static PRIVATE dl)
