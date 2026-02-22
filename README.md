@@ -78,16 +78,17 @@ cmake --build build
 
 | Component | Status |
 |-----------|--------|
-| Core API (Resource Manager, Sessions) | 🔨 In Progress |
-| TCPIP – Raw Socket | 🔨 In Progress |
-| TCPIP – VXI-11 (ONC RPC) | 📋 Planned |
-| TCPIP – HiSLIP | 📋 Planned |
-| USB – USBTMC | 📋 Planned |
-| Serial (ASRL) | 📋 Planned |
-| GPIB | 📋 Planned |
-| Auto-Discovery (mDNS/LXI) | 📋 Planned |
-| Formatted I/O (viPrintf/viScanf) | 📋 Planned |
-| Event Handling | 📋 Planned |
+| Core API (Resource Manager, Sessions) | ✅ Complete |
+| TCPIP – Raw Socket (`TCPIP::host::port::SOCKET`) | ✅ Complete |
+| TCPIP – VXI-11 (ONC RPC, `TCPIP::host::INSTR`) | ✅ Complete |
+| TCPIP – HiSLIP (`TCPIP::host::hislip0`) | ✅ Complete |
+| USB – USBTMC (via libusb, optional) | ✅ Complete |
+| Serial (ASRL) | ✅ Complete |
+| GPIB (via linux-gpib/NI-488.2, dynamic loading) | ✅ Complete |
+| Auto-Discovery (mDNS/LXI + USB + Serial) | ✅ Complete |
+| Formatted I/O (viPrintf/viQueryf) | ✅ Complete |
+| Attributes (viGet/SetAttribute) | ✅ Complete |
+| Resource String Parser (all types) | ✅ Complete (12/12 tests) |
 
 ## Contributing
 

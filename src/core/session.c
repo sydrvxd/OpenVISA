@@ -292,8 +292,8 @@ ViStatus _VI_FUNC viOpen(
 
     sess->resource = rsrc;
 
-    /* Create transport */
-    sess->transport = ov_transport_create(rsrc.intfType);
+    /* Create transport — selects HiSLIP, raw socket, etc. based on resource flags */
+    sess->transport = ov_transport_create_for_rsrc(&rsrc);
     if (!sess->transport) {
         ov_session_free(sess);
         return VI_ERROR_RSRC_NFOUND;
@@ -469,22 +469,7 @@ ViStatus _VI_FUNC viParseRsrc(
     return VI_SUCCESS;
 }
 
-ViStatus _VI_FUNC viFindRsrc(
-    ViSession sesn, ViString expr,
-    ViFindList *findList, ViUInt32 *retcnt, ViChar desc[])
-{
-    /* TODO: Implement discovery (mDNS, USB enumeration, serial scan) */
-    if (retcnt) *retcnt = 0;
-    return VI_ERROR_RSRC_NFOUND;
-}
-
-ViStatus _VI_FUNC viFindNext(ViFindList findList, ViChar desc[]) {
-    OvFindList *fl = ov_findlist_find(findList);
-    if (!fl) return VI_ERROR_INV_OBJECT;
-    if (fl->current >= fl->count) return VI_ERROR_RSRC_NFOUND;
-    strcpy(desc, fl->descriptors[fl->current++]);
-    return VI_SUCCESS;
-}
+/* viFindRsrc and viFindNext are implemented in core/discovery.c */
 
 /* Formatted I/O - basic implementation */
 ViStatus _VI_FUNCH viPrintf(ViSession vi, ViString writeFmt, ...) {

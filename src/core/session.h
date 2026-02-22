@@ -97,5 +97,6 @@ ViStatus    ov_parse_rsrc(const char *rsrcName, OvResource *rsrc);
 
 /* Transport factory */
 OvTransport* ov_transport_create(OvIntfType type);
+OvTransport* ov_transport_create_for_rsrc(const OvResource *rsrc);
 
 #endif /* OPENVISA_SESSION_H */
