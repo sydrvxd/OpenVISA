@@ -27,6 +27,7 @@ target_compile_definitions(visa PRIVATE OPENVISA_EXPORTS)
 # Static library (for embedding)
 add_library(visa_static STATIC ${SOURCES})
 target_include_directories(visa_static PUBLIC include PRIVATE src)
+target_compile_definitions(visa_static PRIVATE OPENVISA_EXPORTS)
 set_target_properties(visa_static PROPERTIES OUTPUT_NAME "visa_static")
 
 # Platform-specific linking
