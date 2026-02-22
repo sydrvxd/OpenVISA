@@ -23,7 +23,7 @@ SetCompressor /SOLID lzma
 ; ---- MUI Settings ----
 !define MUI_ABORTWARNING
 !define MUI_WELCOMEPAGE_TITLE "Welcome to OpenVISA ${PRODUCT_VERSION}"
-!define MUI_WELCOMEPAGE_TEXT "This will install OpenVISA — an open-source, vendor-free VISA implementation.$\r$\n$\r$\nDrop-in replacement for NI-VISA / Keysight IO Libraries.$\r$\n$\r$\nInstalls:$\r$\n  $\u2022 visa64.dll (64-bit) $\u2192 System32 + IVI Foundation$\r$\n  $\u2022 visa32.dll (32-bit) $\u2192 SysWOW64 + IVI Foundation$\r$\n  $\u2022 Header files (visa.h, visatype.h)$\r$\n$\r$\nClick Next to continue."
+!define MUI_WELCOMEPAGE_TEXT "This will install OpenVISA - an open-source, vendor-free VISA implementation.$\r$\n$\r$\nDrop-in replacement for NI-VISA / Keysight IO Libraries.$\r$\n$\r$\nInstalls:$\r$\n  - visa64.dll (64-bit) -> System32 + IVI Foundation$\r$\n  - visa32.dll (32-bit) -> SysWOW64 + IVI Foundation$\r$\n  - Header files (visa.h, visatype.h)$\r$\n$\r$\nClick Next to continue."
 
 ; ---- Pages ----
 !insertmacro MUI_PAGE_WELCOME
