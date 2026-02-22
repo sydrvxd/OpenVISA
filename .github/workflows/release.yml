@@ -1,0 +1,125 @@
+name: Release Build
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake libusb-1.0-0-dev
+
+      - name: Build
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build -j$(nproc)
+
+      - name: Test
+        run: cd build && ./test_parser
+
+      - name: Package tarball
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          mkdir -p pkg/openvisa/{lib,include,bin}
+          cp build/libvisa.so.* pkg/openvisa/lib/
+          cd pkg/openvisa/lib && ln -sf libvisa.so.* libvisa.so.0 && ln -sf libvisa.so.0 libvisa.so && cd -
+          cp build/libvisa_static.a pkg/openvisa/lib/
+          cp include/visa.h include/visatype.h pkg/openvisa/include/
+          cp build/example_idn pkg/openvisa/bin/
+          cp LICENSE README.md pkg/openvisa/
+          cd pkg && tar czf ../OpenVISA-${VERSION}-linux-x64.tar.gz openvisa/
+
+      - name: Package DEB
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          mkdir -p deb/DEBIAN deb/usr/lib/x86_64-linux-gnu deb/usr/include
+          cp build/libvisa.so.${VERSION} deb/usr/lib/x86_64-linux-gnu/
+          cd deb/usr/lib/x86_64-linux-gnu && ln -sf libvisa.so.${VERSION} libvisa.so.0 && ln -sf libvisa.so.0 libvisa.so && cd -
+          cp include/visa.h include/visatype.h deb/usr/include/
+          cat > deb/DEBIAN/control << EOF
+          Package: openvisa
+          Version: ${VERSION}
+          Section: libs
+          Priority: optional
+          Architecture: amd64
+          Maintainer: sydrvxd
+          Description: Open-source VISA implementation
+           Drop-in replacement for NI-VISA / Keysight IO Libraries.
+          EOF
+          sed -i 's/^          //' deb/DEBIAN/control
+          dpkg-deb --build deb openvisa_${VERSION}_amd64.deb
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-artifacts
+          path: |
+            OpenVISA-*-linux-x64.tar.gz
+            openvisa_*_amd64.deb
+
+  build-windows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install cross-compilers + NSIS
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake gcc-mingw-w64-x86-64 gcc-mingw-w64-i686 nsis zip
+
+      - name: Build Windows 64-bit
+        run: |
+          cmake -B build-win64 -DCMAKE_TOOLCHAIN_FILE=cmake/win64-toolchain.cmake -DOPENVISA_WITH_USB=OFF -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-win64 -j$(nproc)
+
+      - name: Build Windows 32-bit
+        run: |
+          cmake -B build-win32 -DCMAKE_TOOLCHAIN_FILE=cmake/win32-toolchain.cmake -DOPENVISA_WITH_USB=OFF -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-win32 -j$(nproc)
+
+      - name: Package portable ZIP
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          mkdir -p pkg/OpenVISA/{bin,include,lib,examples}
+          cp build-win64/visa64.dll build-win32/visa32.dll pkg/OpenVISA/bin/
+          cp build-win64/libvisa64.dll.a build-win32/libvisa32.dll.a pkg/OpenVISA/lib/
+          cp include/visa.h include/visatype.h pkg/OpenVISA/include/
+          cp examples/idn_query.c build-win64/example_idn.exe pkg/OpenVISA/examples/
+          cp LICENSE README.md pkg/OpenVISA/
+          cd pkg && zip -r ../OpenVISA-${VERSION}-win64.zip OpenVISA/
+
+      - name: Build NSIS installer
+        run: |
+          mkdir -p dist
+          cd installer && makensis openvisa.nsi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-artifacts
+          path: |
+            OpenVISA-*-win64.zip
+            dist/OpenVISA-*-setup-win64.exe
+
+  release:
+    needs: [build-linux, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            OpenVISA-*-win64.zip
+            OpenVISA-*-setup-win64.exe
+            OpenVISA-*-linux-x64.tar.gz
+            openvisa_*_amd64.deb
+          generate_release_notes: true
