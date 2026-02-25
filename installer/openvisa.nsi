@@ -40,8 +40,11 @@ SetCompressor /SOLID lzma
 ; ---- Helper: Add/Remove from PATH ----
 
 Function AddToPath
-    ; Read current system PATH
+    ; Read current system PATH (preserve REG_EXPAND_SZ type)
     ReadRegStr $0 HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "Path"
+    StrCmp $0 "" 0 +2
+        ; PATH is empty — something is very wrong, do NOT overwrite
+        Return
     ; Check if already contains our path
     StrCpy $1 "$PROGRAMFILES64\IVI Foundation\VISA\Win64\Bin"
     Push $0
@@ -49,7 +52,7 @@ Function AddToPath
     Call StrContains
     Pop $2
     StrCmp $2 "" 0 +3
-        ; Not found — append
+        ; Not found — append (preserve existing PATH)
         WriteRegExpandStr HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "Path" "$0;$1"
         ; Notify Windows of environment change
         SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
